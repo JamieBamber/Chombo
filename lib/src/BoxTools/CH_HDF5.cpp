@@ -930,6 +930,7 @@ int HDF5HeaderData::writeToLocation(hid_t loc_id) const
 #endif
   herr_t  ret;
   char messg[1024];
+pout() << "#define INSERT(Ttype, mapName, H5Ttype):" << endl;
 #define INSERT(Ttype, mapName, H5Ttype)                                   \
   for (map<std::string, Ttype>::const_iterator p = mapName.begin();        \
       p!= mapName.end(); ++p)                                             \
@@ -957,6 +958,7 @@ int HDF5HeaderData::writeToLocation(hid_t loc_id) const
       H5Aclose(attr);                                                     \
     }                                                                     \
 
+pout() << "#define INSERT2(Ttype, mapName, H5Ttype):" << endl;
 #define INSERT2(Ttype, mapName, H5Ttype)                                   \
   for (map<std::string, Ttype>::const_iterator p = mapName.begin();        \
       p!= mapName.end(); ++p)                                             \
@@ -983,6 +985,7 @@ int HDF5HeaderData::writeToLocation(hid_t loc_id) const
       H5Aclose(attr);                                                     \
     }                                                                     \
 
+pout() << "#ifdef H516 bits" << endl;
 #ifdef H516
     INSERT(Real, m_real, H5T_NATIVE_REAL);
     INSERT(int, m_int, H5T_NATIVE_INT);
@@ -998,11 +1001,18 @@ int HDF5HeaderData::writeToLocation(hid_t loc_id) const
 #endif
     // string is different, of course
 
+pout() << "for (map<std::string, std::string>::const_iterator p = m_string.begin();p!= m_string.end(); ++p)" << endl;
     for (map<std::string, std::string>::const_iterator p = m_string.begin();
         p!= m_string.end(); ++p)
     {
       hid_t s_type = H5Tcopy(H5T_C_S1);
+      //pout() << "m_string[name] = " << m_string[name] << endl;
+      pout() << "s_type = " << s_type << endl;
+      pout() << "p->first.length() = " << p->first.length() << endl;
+      pout() << "p->second.length() = " << p->second.length() << endl;
+      pout() << "H5Tset_size(s_type, p->second.length()" << endl;
       H5Tset_size(s_type, p->second.length()); //extra requirement for strings
+      pout() << "done H5Tset_size(s_type, p->second.length()" << endl;
       hid_t aid  = H5Screate(H5S_SCALAR);
 #ifdef H516
       H5Eset_auto(NULL, NULL);
