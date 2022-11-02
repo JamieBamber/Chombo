@@ -156,11 +156,11 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
                       const Vector<int>& a_refRatio,
                       const int& a_numLevels)
 {
-  pout() << "assertions" << endl;
+  // pout() << "assertions" << endl;
   CH_assert(a_numLevels > 0);
   CH_assert(a_vectData.size()  >= a_numLevels);
   CH_assert(a_refRatio.size() >= a_numLevels-1);
-  pout() << "done assertions" << endl;
+  // pout() << "done assertions" << endl;
 
   HDF5HeaderData header;
   int nComp = a_vectNames.size();
@@ -169,7 +169,7 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
   header.m_string ["filetype"]      = filedescriptor;
   header.m_int ["num_levels"]       = a_numLevels;
   header.m_int ["num_components"]    = nComp;
-  pout() << "filedescriptor = " << filedescriptor << endl;
+  // pout() << "filedescriptor = " << filedescriptor << endl;
   pout() << "a_numLevels = " << a_numLevels << endl;
   pout() << "nComp = " << nComp << endl;
 
@@ -179,12 +179,12 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
       sprintf(labelChSt, "component_%d", ivar);
       string label(labelChSt);
       header.m_string[label] = a_vectNames[ivar];
-      pout() << "label = " << label << endl;
-      pout() << "header.m_string[label] = " << header.m_string[label] << endl;
+      // pout() << "label = " << label << endl;
+      // pout() << "header.m_string[label] = " << header.m_string[label] << endl;
     }
-  pout() << "trying header.writeToFile(handle)" << endl;
+  // pout() << "trying header.writeToFile(handle)" << endl;
   header.writeToFile(handle);
-  pout() << "done header.writeToFile(handle)" << endl;
+  // pout() << "done header.writeToFile(handle)" << endl;
 
   Box domainLevel = a_domain;
   Real dtLevel = a_dt;
@@ -207,7 +207,7 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
       CH_assert(dataLevel.nComp() == nComp);
       Interval comps(0,nComp-1);
       IntVect ghostVect = a_vectData[0]->ghostVect();
-      pout() << "trying writeLevel(...)" << endl;
+      // pout() << "trying writeLevel(...)" << endl;
       int eek = writeLevel(handle, ilev, dataLevel,
                            dxLevel, dtLevel, a_time,
                            domainLevel, refLevel, ghostVect, comps);
@@ -242,7 +242,7 @@ WriteAnisotropicAMRHierarchyHDF5(
   header.m_string ["filetype"]      = filedescriptor;
   header.m_int ["num_levels"]       = a_numLevels;
   header.m_int ["num_components"]    = nComp;
-  pout() << "filedescriptor = " << filedescriptor << endl;
+  // pout() << "filedescriptor = " << filedescriptor << endl;
   pout() << "a_numLevels = " << a_numLevels << endl;
   pout() << "nComp = " << nComp << endl;
 
@@ -252,8 +252,8 @@ WriteAnisotropicAMRHierarchyHDF5(
       sprintf(labelChSt, "component_%d", ivar);
       string label(labelChSt);
       header.m_string[label] = a_vectNames[ivar];
-      pout() << "label = " << label << endl;
-      pout() << "header.m_string[label] = " << header.m_string[label] << endl;
+      // pout() << "label = " << label << endl;
+      // pout() << "header.m_string[label] = " << header.m_string[label] << endl;
     }
   header.writeToFile(handle);
 
@@ -318,11 +318,11 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
                       const Vector<int>& a_refRatio,
                       const int& a_numLevels)
 {
-  pout() << "assertions" << endl;
+  // pout() << "assertions" << endl;
   CH_assert(a_numLevels > 0);
   CH_assert(a_vectData.size()  >= a_numLevels);
   CH_assert(a_refRatio.size() >= a_numLevels-1);
-  pout() << "end assertions" << endl;
+  // pout() << "end assertions" << endl;
   Real dxin = 1.0;
   Real dtin = 1.0;
   Real time = 1.0;
@@ -334,9 +334,9 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
   header.m_string ["filetype"]      = filedescriptor;
   header.m_int ["num_levels"]       = a_numLevels;
   header.m_int ["num_components"]    = nComp;
-  pout() << "filedescriptor = " << filedescriptor << endl;
-  pout() << "a_numLevels = " << a_numLevels << endl;
-  pout() << "nComp = " << nComp << endl;
+  // pout() << "filedescriptor = " << filedescriptor << endl;
+  // pout() << "a_numLevels = " << a_numLevels << endl;
+  // pout() << "nComp = " << nComp << endl;
 
   for (int ivar = 0; ivar < nComp; ivar++)
     {
@@ -344,12 +344,12 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
       sprintf(labelChSt, "component_%d", ivar);
       string label(labelChSt);
       header.m_string[label] = label;
-      pout() << "label = " << label << endl;
-      pout() << "header.m_string[label] = " << header.m_string[label] << endl;
+      // pout() << "label = " << label << endl;
+      // pout() << "header.m_string[label] = " << header.m_string[label] << endl;
     }
-  pout() << "now try header.writeToFile(handle)" << endl;
+  // pout() << "now try header.writeToFile(handle)" << endl;
   header.writeToFile(handle);
-  pout() << "done header.writeToFile(handle)" << endl;
+  // pout() << "done header.writeToFile(handle)" << endl;
 
   Box domainLevel = a_domain;
   Real dtLevel = dtin;
@@ -372,7 +372,7 @@ WriteAMRHierarchyHDF5(HDF5Handle& handle,
       CH_assert(dataLevel.nComp() == nComp);
       Interval comps(0,nComp-1);
       IntVect ghostVect = a_vectData[0]->ghostVect();
-      pout() << "trying writeLevel(...)" << endl;
+      // pout() << "trying writeLevel(...)" << endl;
       int eek = writeLevel(handle, ilev, dataLevel,
                            dxLevel, dtLevel, time,
                            domainLevel, refLevel, ghostVect, comps);

@@ -25,6 +25,9 @@ using std::endl;
 
 bool QuadCFInterp::newCFInterMode = true;
 
+// for NaN check
+const double m_max_abs = 1e20;
+
 /**/
 void
 QuadCFInterp::
@@ -59,7 +62,6 @@ interpPhiOnIVS(LevelData<FArrayBox>& a_phif,
   IntVect bi = -  ihilo*BASISV(a_idir);
   IntVect ci =    ihilo*BASISV(a_idir);
 
-
   for (fine_ivsit.begin(); fine_ivsit.ok(); ++fine_ivsit)
     {
       IntVect ivf = fine_ivsit();
@@ -75,6 +77,7 @@ interpPhiOnIVS(LevelData<FArrayBox>& a_phif,
           Real b = (pb-pc)*q1 - a*q2;
           Real c = pa;
           a_phi(ivf,ivar) = a*xsquared + b*x + c;
+          if (std::isnan(a_phi(ivf,ivar)) || abs(a_phi(ivf,ivar)) > m_max_abs) {pout()<<"val is nan, ivar,ivf = "<<ivar<<"; "<<ivf<<endl;}
         } //end loop over components
     } //end loop over fine intvects
 }
@@ -154,7 +157,6 @@ homogeneousCFInterpTanGrad(LevelData<FArrayBox>& a_tanGrad,
     {
       if (gradDir != a_idir)
         {
-
           // first do centered stencil
           const IntVectSet& centeredIVS =
             cfstencil_ptr->getCenteredStencilSet(gradDir);
@@ -197,7 +199,7 @@ homogeneousCFInterpTanGrad(LevelData<FArrayBox>& a_tanGrad,
                       Real c = fineGrada;
 
                       tanGrad(ivf,gradComp) = a*xsquared + b*x + c;
-
+                      if (std::isnan(tanGrad(ivf,gradComp)) || abs(tanGrad(ivf,gradComp)) > m_max_abs) {pout()<<"val is nan, ivar,gradComp,ivf = "<<ivar<<"; "<<gradComp<<"; "<<ivf<<endl;}
                     }
                 } // end loop over centered difference cells
             } // end if there are centered cells
@@ -245,7 +247,7 @@ homogeneousCFInterpTanGrad(LevelData<FArrayBox>& a_tanGrad,
                       Real c = fineGrada;
 
                       tanGrad(ivf,gradComp) = a*xsquared + b*x + c;
-
+                      if (std::isnan(tanGrad(ivf,gradComp)) || abs(tanGrad(ivf,gradComp)) > m_max_abs) {pout()<<"val is nan, var,gradComp,ivf = "<<var<<"; "<<gradComp<<"; "<<ivf<<endl;}
                     } // end loop over variables
                 } // end loop over forward-difference locations
             } // end if there are forward-difference cells
@@ -293,7 +295,7 @@ homogeneousCFInterpTanGrad(LevelData<FArrayBox>& a_tanGrad,
                       Real c = fineGrada;
 
                       tanGrad(ivf,gradComp) = a*xsquared + b*x + c;
-
+                      if (std::isnan(tanGrad(ivf,gradComp)) || abs(tanGrad(ivf,gradComp)) > m_max_abs) {pout()<<"val is nan, var,gradComp,ivf = "<<var<<"; "<<gradComp<<"; "<<ivf<<endl;}
                     } // end loop over variables
                 } // end loop over backward-difference cells
             } // end if there are backward-difference cells
@@ -753,6 +755,7 @@ QuadCFInterp::getPhiStar(BaseFab<Real> & a_phistar,
                   update3 =  x1*x2*coarmixed(ivc);
 #endif
                   a_phistar(ivstar, ivar) = pc+update1+update2+update3;
+                  if (std::isnan(a_phistar(ivstar,ivar)) || abs(a_phistar(ivstar,ivar)) > m_max_abs) {pout()<<"val is nan, ivar,ivf = "<<ivar<<"; "<<ivstar<<endl;}
                 } //end loop over fine intvects
               CH_STOP(tnp);
             } // end if for not packed optimization
@@ -819,6 +822,7 @@ QuadCFInterp::interpOnIVS(BaseFab<Real> & a_phif,
                   Real c = pa;
                   Real x = 2.*h;
                   a_phif (ivf,ivar) = a*x*x + b*x + c;
+                  if (std::isnan(a_phif(ivf,ivar)) || abs(a_phif(ivf,ivar)) > m_max_abs) {pout()<<"val is nan, ivar,ivf = "<<ivar<<"; "<<ivf<<endl;}
                 } //end loop over components
             } //end loop over fine intvects
         } else
@@ -856,7 +860,8 @@ QuadCFInterp::coarseFineInterp(LevelData<FArrayBox>& a_phif,
     {
       CH_assert(a_phif.nComp() == m_nComp);
       CH_assert(a_phic.nComp() == m_nComp);
-      CH_assert(a_phif.ghostVect() >= IntVect::Unit);
+      CH_assert(a_phif.ghostVect() >= IntVect::Unit);     
+      pout() << "a_phif.ghostVect() = " << a_phif.ghostVect() << endl; 
       CH_assert(a_phic.boxLayout() == m_inputCoarLayout);
       CH_assert(a_phif.boxLayout() == m_inputFineLayout);
       a_phic.copyTo(a_phic.interval(), m_coarBuffer, m_coarBuffer.interval(),

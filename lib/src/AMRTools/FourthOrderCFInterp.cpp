@@ -46,7 +46,7 @@ void FourthOrderCFInterp::define(/// layout at this level
   int ghostsCoarsened = m_interpRadius / m_refineCoarse;
   if (ghostsCoarsened * m_refineCoarse < m_interpRadius) ghostsCoarsened++;
 
-  //no dimensions are fixed
+  // no dimensions are fixed
   // FourthOrderFineInterp m_spaceInterpolator;
   m_spaceInterpolator.define(m_layout, m_numStates,
                              m_refineCoarse, fineDomain, ghostsCoarsened);
