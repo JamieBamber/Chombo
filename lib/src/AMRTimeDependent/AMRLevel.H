@@ -147,6 +147,13 @@ public:
   virtual
     void postTimeStep() = 0;
 
+  /*
+  Things to do after advancing ALL the levels by the coarsest time step, and doing all the 
+  postTimeStep things
+  */
+  virtual
+    void postWholeTimeStep() = 0;
+
   ///
   /**
      Creates tagged cells for dynamic mesh refinement.

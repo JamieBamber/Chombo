@@ -802,7 +802,7 @@ void AMR::run(Real a_max_time, int a_max_step)
   for ( ; (m_cur_step < a_max_step) &&
           (a_max_time - m_cur_time > m_time_eps*m_dt_base);
         ++m_cur_step, m_cur_time += old_dt_base)
-    {
+  {
         s_step = m_cur_step;
 #ifdef CH_MPI
         wc_run0=MPI_Wtime();
@@ -847,6 +847,12 @@ void AMR::run(Real a_max_time, int a_max_step)
       int stepsLeft = 0;
       bool timeBoundary = true;
       (void)timeStep(level,stepsLeft,timeBoundary);
+
+      // ordering consistent with postTimeStep at the moment
+      for (int ilevel = m_finest_level; ilevel >= 0; ilevel--)
+      {
+        m_amrlevels[ilevel]->postWholeTimeStep();
+      }
 
       assignDt();
 #ifdef CH_MPI

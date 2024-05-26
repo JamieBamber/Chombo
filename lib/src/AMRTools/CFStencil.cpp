@@ -155,7 +155,6 @@ CFStencil::define(
 
   Box finebox = a_grid;
 
-
   //compute intvectset of all points on fine grid that
   //need to be interpolated
 
@@ -281,7 +280,6 @@ CFStencil::define(
   edgebox = a_fineDomain & edgebox;
 
   if (edgebox.isEmpty()) return;
-
 
   int w1 = edgebox.smallEnd()[0];
   int w2 = edgebox.bigEnd()[0];

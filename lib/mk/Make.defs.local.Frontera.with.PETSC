@@ -1,0 +1,27 @@
+DIM              = 3
+DEBUG            = FALSE
+OPT              = HIGH
+PRECISION        = DOUBLE
+CXX              = icpc 
+FC               = ifort 
+MPI              = TRUE
+OPENMPCC         = TRUE
+MPICXX           = mpiicpc
+USE_64           = TRUE
+USE_HDF          = TRUE
+HDFINCFLAGS      = -I$(TACC_HDF5_INC)
+HDFLIBFLAGS      = -L$(TACC_HDF5_LIB) -lhdf5 -lz
+HDFMPIINCFLAGS   = -I$(TACC_HDF5_INC)
+HDFMPILIBFLAGS   = -L$(TACC_HDF5_LIB) -lhdf5 -lz
+USE_MT           = FALSE
+USE_PETSC        = TRUE
+include $(PETSC_DIR)/lib/petsc/conf/variables
+petscincflags    = $(PETSC_CC_INCLUDES)
+petsclibflags    = $(PETSC_KSP_LIB)
+XTRACPPFLAGS     = -DUSE_AHFINDER -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include 
+cxxdbgflags      = -g
+cxxoptflags      = -O3 -xCORE-AVX512 -qopt-zmm-usage=high
+fdbgflags        = -g
+foptflags        = -O3 -xCORE-AVX512 -qopt-zmm-usage=high
+syslibflags      = -mkl=sequential -L${PETSC_HOME}/lib -lpetsc
+RUN              = ibrun -n 2 ./

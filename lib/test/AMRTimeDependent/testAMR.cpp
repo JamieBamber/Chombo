@@ -68,6 +68,11 @@ public:
   void
   postTimeStep();
 
+// things to do after a timestep
+  virtual
+  void
+  postWholeTimeStep();
+
 // create tags
   virtual
   void
@@ -244,6 +249,13 @@ AMRDerivedClass::postTimeStep ()
     }
   }
   if ( verbose ) pout () << "AMRDerivedClass::postTimeStep " << m_level << " finished" << endl;
+}
+
+// My new extra function
+void
+AMRDerivedClass::postWholeTimeStep ()
+{
+    if ( verbose ) pout () << "AMRDerivedClass::postWholeTimeStep " << m_level << endl;
 }
 
 // create tags
