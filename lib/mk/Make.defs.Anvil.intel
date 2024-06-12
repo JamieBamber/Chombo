@@ -1,0 +1,23 @@
+DIM              = 3
+DEBUG            = FALSE
+OPT              = HIGH
+PRECISION        = DOUBLE
+CXX              = mpiicc -std=c++14 -qopenmp
+FC               = mpiifort 
+MPI              = TRUE
+OPENMPCC         = TRUE
+MPICXX           = mpiicc -std=c++14 -qopenmp
+USE_64           = TRUE
+USE_HDF          = TRUE
+HDFINCFLAGS      = -I$(HDF5_HOME)/include
+HDFLIBFLAGS      = -L$(HDF5_HOME)/lib -lhdf5 -lz
+HDFMPIINCFLAGS   = -I$(HDF5_HOME)/include
+HDFMPILIBFLAGS   = -L$(HDF5_HOME)/lib -lhdf5 -lz
+USE_MT           = FALSE
+cxxdbgflags      = -g
+cxxoptflags      = -g -O3 -no-ipo -march=core-avx2 
+fdbgflags        = -g
+foptflags        = -g -O3 -march=core-avx2
+flibflags        += -lifport -lifcore -limf -lsvml -lm -lipgo -lirc -lsvml -lpthread -liomp5
+syslibflags      = -mkl=sequential -lmpifort 
+XTRALDFLAGS      += -Wl,-zmuldefs
