@@ -9,7 +9,6 @@ p
 pout.*
 *_F.H
 .svn
-Make.defs.local
 lib/include
 .check*
 
