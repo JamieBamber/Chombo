@@ -100,7 +100,8 @@ void* BArena::alloc(size_t a_sz)
   // some form of initialization, these operations can fail on some machines.
   // Thus, switching back to "malloc" may cause intermittent failure on some
   // machines!
-  //void* ret =  calloc(1,a_sz);
+  //
+  // void* ret =  calloc(1,a_sz);
   // MK (26/04/17): replaced malloc with aligned memory allocation. 2MB for huge
   // page boundaries
   // MR (22/12/20): switch back to malloc as aligned memory can significantly
