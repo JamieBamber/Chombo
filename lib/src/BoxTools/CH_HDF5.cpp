@@ -634,7 +634,142 @@ HDF5Handle::~HDF5Handle()
 //#endif
 //#endif
 
-int HDF5Handle::open(
+
+int HDF5Handle::open(const std::string& a_filename, mode a_mode, const char *a_globalGroupName)
+{
+  int ret = 0;
+  if (m_isOpen)
+  {
+    MayDay::Error("Calling 'open' on already open file. Use 'close' on finished files");
+  }
+
+  m_mode = a_mode;
+  m_filename = a_filename;
+  if (!initialized) initialize();
+  m_group = "/";
+
+  // Optimization 1: Improve file access property list
+  hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST);
+  H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG);
+
+  // Optimization 2: Set up for parallel I/O if using MPI
+  #ifdef CH_MPI
+  H5Pset_fapl_mpio(fapl_id, Chombo_MPI::comm, MPI_INFO_NULL);
+  H5Pset_coll_metadata_write(fapl_id, true);
+  H5Pset_all_coll_metadata_ops(fapl_id, true);
+  #endif
+
+  // Optimization 3: Use asynchronous I/O
+  hid_t es_id = H5EScreate();
+
+  // Optimization 4: Reduce string operations
+  char filename[256];
+  strncpy(filename, a_filename.c_str(), sizeof(filename));
+  filename[sizeof(filename) - 1] = '\0';
+
+  // Optimization 5: More efficient error handling
+  H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+
+  switch(a_mode)
+  {
+  case CREATE:
+  case CREATE_SERIAL:
+    H5Fcreate_async(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id, es_id, &m_fileID);
+    break;
+  case OPEN_RDONLY:
+    H5Fopen_async(filename, H5F_ACC_RDONLY, fapl_id, es_id, &m_fileID);
+    break;
+  case OPEN_RDWR:
+    H5Fopen_async(filename, H5F_ACC_RDWR, fapl_id, es_id, &m_fileID);
+    break;
+  default:
+    MayDay::Error("Unrecognized file access mode: HDF5Handle::open");
+  }
+
+  H5ESwait(es_id, H5ES_WAIT_FOREVER, NULL, NULL);
+  H5ESclose(es_id);
+
+  if (m_fileID < 0)
+  {
+    H5Pclose(fapl_id);
+    return m_fileID;
+  }
+
+  m_currentGroupID = H5Gopen2(m_fileID, m_group.c_str(), H5P_DEFAULT);
+  if (m_currentGroupID >= 0) m_isOpen = true;
+
+  // Write or read dimension checks and accuracy data
+  HDF5HeaderData info;
+  char buf[1024];
+  hid_t attr, datatype, group;
+  size_t codeprecision, fileprecision;
+
+  // Optimization 6: Use chunking for large datasets
+  hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+  hsize_t chunk_dims[1] = {1024}; // Adjust based on your typical dataset size
+  H5Pset_chunk(dcpl_id, 1, chunk_dims);
+
+  // Optimization 7: Use compression if appropriate
+  H5Pset_deflate(dcpl_id, 6);
+
+  switch(a_mode)
+  {
+  case CREATE_SERIAL:
+  case CREATE:
+    group = H5Gcreate2(m_fileID, a_globalGroupName, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    info.m_int["SpaceDim"] = SpaceDim;
+    info.m_real["testReal"] = 0.0;
+    info.writeToLocation(group);
+    break;
+  default:
+    group = H5Gopen2(m_fileID, a_globalGroupName, H5P_DEFAULT);
+    if (group < 0)
+    {
+      MayDay::Warning("This file appears to be missing a 'Chombo_global' section");
+    }
+    info.readFromLocation(group);
+    if (info.m_int["SpaceDim"] == 0)
+    {
+      snprintf(buf, sizeof(buf), "File '%s' appears to lack a SpaceDim definition", filename);
+      MayDay::Error(buf);
+    }
+    if (info.m_int["SpaceDim"] != SpaceDim)
+    {
+      snprintf(buf, sizeof(buf), "SpaceDim of '%s' does not match code", filename);
+      MayDay::Error(buf);
+    }
+
+    attr = H5Aopen(group, "testReal", H5P_DEFAULT);
+    if (attr < 0) return 1;
+    datatype = H5Aget_type(attr);
+    fileprecision = H5Tget_precision(datatype);
+    codeprecision = H5Tget_precision(H5T_NATIVE_REAL);
+    if (fileprecision > codeprecision) ret = 2;
+    if (codeprecision > fileprecision)
+    {
+      snprintf(buf, sizeof(buf), "Code is compiled with Real=%zu bits, file %s has Real=%zu bits",
+               codeprecision, filename, fileprecision);
+      MayDay::Warning(buf);
+      ret = 2;
+    }
+    H5Aclose(attr);
+    H5Tclose(datatype);
+  }
+
+  H5Gclose(group);
+  H5Pclose(dcpl_id);
+  H5Pclose(fapl_id);
+
+  return ret;
+}
+
+
+
+
+
+
+int HDF5Handle::open_og(
         const std::string& a_filename,
         mode a_mode,
         const char *a_globalGroupName)

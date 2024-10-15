@@ -214,6 +214,8 @@ public:
    */
   void maxGridSize(int a_max_grid_size);
 
+  //! write the header for the checkpoint file leveraging HDF5 code(written by Shreyas Jammi)
+  void writeHeaderAsync(hid_t file_id, hid_t es_id) const;
   ///
   /**
      Set the maximum grid size for level 0 grids.

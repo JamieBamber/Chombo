@@ -1916,6 +1916,142 @@ void AMR::writeCheckpointFile() const
 }
 //-----------------------------------------------------------------------
 
+//Written by Shreyas Jammi 14-10-2024
+
+
+void AMR::writeHeaderAsync(hid_t file_id, hid_t es_id) const
+{
+    // Create a group for header data
+//    H5_DLL hid_t  H5Gcreate_async(hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id,
+    
+    hid_t group_id = H5Gcreate_async(file_id, "Header", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT, es_id);
+
+    // Write scalar attributes
+    hsize_t scalar_dims[] = {1};
+    hid_t scalar_space = H5Screate_simple(1, scalar_dims, NULL);
+    
+    hid_t attr_id_maxlev = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1935, &file_id, "max_level", H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+    hid_t attr_id_numlel = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1936, &file_id, "num_levels", H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+    hid_t attr_id_currstep = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1937, &file_id, "current_step", H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+    hid_t attr_id_currtime = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1938, &file_id, "current_time", H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+    HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_maxlev, H5T_NATIVE_INT, &m_max_level, &es_id);
+    H5Aclose_async(attr_id_maxlev, es_id);
+    HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_numlel, H5T_NATIVE_INT, &m_finest_level + 1, &es_id);
+    H5Aclose_async(attr_id_numlel, es_id);
+    HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_currstep, H5T_NATIVE_INT, &m_cur_step, &es_id);
+    H5Aclose_async(attr_id_currstep, es_id);
+    HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_currtime, H5T_NATIVE_INT, &m_cur_time, &es_id);
+    H5Aclose_async(attr_id_currtime, es_id);
+    //H5_DLL herr_t H5Awrite_async(const char *app_file, const char *app_func, unsigned app_line, hid_t attr_id,
+    //                             hid_t type_id, const void *buf, hid_t es_id);
+    
+    for (int level = 0; level < m_regrid_intervals.size(); ++level) {
+      char headername[100];
+      sprintf(headername, "regrid_interval_%d", level);
+      hid_t attr_id_regridintervals = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1950, &file_id, headername, H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+      HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_regridintervals, H5T_NATIVE_INT, &m_regrid_intervals[level], &es_id);
+      HSAclose_async(&attr_id_regridintervals, &es_id);
+    }
+
+    for (int level = 0; level < m_regrid_intervals.size(); ++level) {
+      char headername[100];
+      sprintf(headername, "steps_since_regrid_%d", level);
+      hid_t attr_id_steps_since_regrid = HSAcreate_async("ARM.cpp", "AMR::writeHeaderAsync", 1950, &file_id, headername, H5T_NATIVE_INT, &scalar_space, H5P_DEFAULT, H5P_DEFAULT, &es_id);
+      HSAwrite_async("ARM.cpp", "AMR::writeHeaderAsync", 1939, &attr_id_steps_since_regrid, H5T_NATIVE_INT, &m_steps_since_regrid[level], &es_id);
+      HSAclose_async(&attr_id_steps_since_regrid, &es_id);
+    }
+    
+    // Close spaces
+    H5Sclose(scalar_space);
+    // Close group
+    H5Gclose_async(group_id, es_id);
+}
+
+
+void AMR::writeCheckpointFile() const
+{
+  CH_TIME("AMR::writeCheckpointFile");
+
+  CH_assert(m_isDefined);
+
+  if (m_verbosity >= 3)
+  {
+    pout() << "AMR::writeCheckpointFile" << endl;
+  }
+
+#ifdef CH_USE_HDF5
+  string iter_str = m_checkpointfile_prefix;
+
+  char suffix[100];
+  sprintf(suffix,"%06d.%dd.hdf5",m_cur_step,SpaceDim);
+
+  iter_str += suffix;
+
+  if (m_verbosity >= 2)
+  {
+    pout() << "checkpoint file name = " << iter_str << endl;
+  }
+
+#ifdef CH_MPI
+  MPI_Barrier(Chombo_MPI::comm);
+#endif
+  
+  hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(fapl_id, Chombo_MPI::comm, MPI_INFO_NULL);
+  H5Pset_fapl_subfiling(fapl_id, Chombo_MPI::comm, MPI_INFO_NULL);
+  H5Pset_coll_metadata_write(fapl_id, true);
+  H5Pset_all_coll_metadata_ops(fapl_id, true);
+
+  hid_t file_id = H5Fcreate(iter_str.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, fapl_id);
+  H5Pclose(fapl_id);
+
+  hid_t es_id = H5EScreate();
+
+  // Write header data
+  writeHeaderAsync(file_id, es_id);
+
+  // Write physics class data
+  m_amrlevels[0]->writeCheckpointHeader(file_id);
+
+  // Buffered writing of level data
+  // should be 11 AMR levels, but this can vary
+  // for more intensive writing operations, increase buffer size -> that will push more data into memory and make the data writing process faster but will also have more stress on the memory itself
+  const int bufferSize = 2; // Adjust based on memory strain -> lowkey pulled this out my ass but maybe dont go above 4
+  for (int level = 0; level < m_finest_level + 1; level += bufferSize)
+  {
+    int endLevel = std::min(level + bufferSize, m_finest_level + 1);
+    for (int l = level; l < endLevel; ++l)
+    {
+      m_amrlevels[l]->preCheckpointLevel();
+    }
+    writeBufferedLevelData(file_id, es_id, level, endLevel);
+  }
+
+  // Wait for all async operations to complete
+  H5ESwait(es_id, H5ES_WAIT_FOREVER, NULL, NULL);
+  H5ESclose(es_id);
+
+#ifdef CH_MPI
+  MPI_Barrier(Chombo_MPI::comm);
+#endif
+
+  H5Fclose(file_id);
+#endif
+}
+
+
+
+void AMR::writeBufferedLevelData_async(hid_t file_id, hid_t es_id, int startLevel, int endLevel) const 
+{
+// can only write with knowledge of physics class 
+}
+
+
+//Written by Shreyas Jammi 14-10-2024
+
+
+
+
 //-----------------------------------------------------------------------
 void AMR::verbosity(int a_verbosity)
 {
