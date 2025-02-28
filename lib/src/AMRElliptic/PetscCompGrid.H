@@ -16,6 +16,7 @@
 #include "BoxIterator.H"
 #include "FourthOrderInterpStencil.H"
 #ifdef CH_USE_PETSC
+#define PETSC_SKIP_CXX_COMPLEX_FIX // fix PETSc complex error?
 #include <petsc.h>
 #endif
 #include "NamespaceHeader.H"
