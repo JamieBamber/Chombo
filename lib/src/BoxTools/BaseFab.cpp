@@ -84,6 +84,9 @@ template < > void BaseFab<Real>::define()
   // }
 
   m_truesize = m_nvar * m_numpts;
+  // pout() << "m_nvar = " << m_nvar << std::endl;
+  // pout() << "m_numpts = " << m_numpts << std::endl;
+  // pout() << "m_truesize = " << m_truesize << std::endl;
   m_dptr     = static_cast<Real*>(s_Arena->alloc(m_truesize * sizeof(Real)));
 
 #ifdef CH_USE_MEMORY_TRACKING
@@ -127,6 +130,9 @@ template < > void BaseFab<int>::define()
   // }
 
   m_truesize = m_nvar * m_numpts;
+  // pout() << "m_nvar = " << m_nvar << std::endl;
+  // pout() << "m_numpts = " << m_numpts << std::endl;
+  // pout() << "m_truesize = " << m_truesize << std::endl;
   m_dptr     = static_cast<int*>(s_Arena->alloc(m_truesize * sizeof(int)));
 
 #ifdef CH_USE_MEMORY_TRACKING

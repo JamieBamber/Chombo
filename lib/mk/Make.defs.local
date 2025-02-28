@@ -1,6 +1,6 @@
 DIM              = 3
 DEBUG            = FALSE
-OPT              = TRUE
+OPT              = HIGH
 PRECISION        = DOUBLE
 CXX              = icpc 
 FC               = ifort 
@@ -13,7 +13,7 @@ HDFINCFLAGS      = -I$(TACC_PHDF5_INC)
 HDFLIBFLAGS      = -L$(TACC_PHDF5_LIB) -lhdf5 -lz
 HDFMPIINCFLAGS   = -I$(TACC_PHDF5_INC)
 HDFMPILIBFLAGS   = -L$(TACC_PHDF5_LIB) -lhdf5 -lz
-USE_MT           = TRUE
+USE_MT           = FALSE
 USE_PETSC        = TRUE
 include $(PETSC_DIR)/lib/petsc/conf/variables
 petscincflags    = $(PETSC_CC_INCLUDES)
@@ -23,9 +23,5 @@ cxxdbgflags      = -g
 cxxoptflags      = -O3 -xCORE-AVX512 -qopt-zmm-usage=high
 fdbgflags        = -g
 foptflags        = -O3 -xCORE-AVX512 -qopt-zmm-usage=high
-syslibflags      = -mkl=sequential -L$TACC_PETSC_LIB -lpetsc
+syslibflags      = -mkl=sequential -L${PETSC_HOME}/lib -lpetsc
 RUN              = ibrun -n 2 ./
-
-
-
-#USE_ALIGNED_MEMORY = TRUE
