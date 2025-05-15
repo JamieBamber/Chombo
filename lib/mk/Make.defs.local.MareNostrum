@@ -1,0 +1,26 @@
+DIM              = 3
+DEBUG            = FALSE
+OPT              = HIGH
+PRECISION        = DOUBLE
+CXX              = mpiicpc -std=c++14 -qopenmp
+FC               = mpiifort
+MPI              = TRUE
+OPENMPCC         = TRUE
+MPICXX           = mpiicpc -std=c++14 -qopenmp
+USE_64           = TRUE
+USE_HDF          = TRUE
+HDFINCFLAGS      = -I$(HDF5_DIR)/include
+HDFLIBFLAGS      = -L$(HDF5_DIR)/lib -lhdf5 -lz
+HDFMPIINCFLAGS   = -I$(HDF5_DIR)/include
+HDFMPILIBFLAGS   = -L$(HDF5_DIR)/lib -lhdf5 -lz
+USE_MT           = FALSE
+USE_PETSC        = TRUE
+include $(PETSC_DIR)/lib/petsc/conf/variables
+petscincflags    = $(PETSC_CC_INCLUDES)
+petsclibflags    = $(PETSC_KSP_LIB)
+XTRACPPFLAGS     = -DUSE_AHFINDER -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include 
+cxxdbgflags      = -g
+cxxoptflags      = -O3 -xHost
+fdbgflags        = -g
+foptflags        = -O3 -xHost
+syslibflags      = -mkl=sequential -L${PETSC_HOME}/lib -lpetsc
